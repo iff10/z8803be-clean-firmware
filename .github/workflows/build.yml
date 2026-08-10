@@ -14,7 +14,7 @@ jobs:
     - name: Install Compiling Dependencies
       run: |
         sudo apt update
-        sudo apt install -y build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip zlib1g-dev file python3-distutils
+        sudo apt install -y build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip zlib1g-dev file python3-setuptools
 
     - name: Clone OpenWrt Source
       run: |
