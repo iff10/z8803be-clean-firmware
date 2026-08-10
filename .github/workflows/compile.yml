@@ -16,7 +16,7 @@ jobs:
         sudo apt update
         sudo apt install -y build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip zlib1g-dev file python3-setuptools
 
-    - name: Clone Z8803BE Source
+    - name: Clone Z8803BE Community Source
       run: |
         git clone -b zbt8803_25.12 https://github.com openwrt-source
         cd openwrt-source
@@ -36,6 +36,17 @@ jobs:
         echo "CONFIG_PACKAGE_luci=y" >> .config
         echo "CONFIG_PACKAGE_comgt=y" >> .config
         make defconfig
+
+    - name: Disable the Vendor Watchdog Loop
+      run: |
+        cd openwrt-source
+        # Completely strips or empties the custom background loop script if present in the build tree
+        WATCHDOG_FILE="target/linux/mediatek/filogic/base-files/usr/sbin/watchdog.sh"
+        if [ -f "$WATCHDOG_FILE" ]; then
+          echo "#!/bin/sh" > "$WATCHDOG_FILE"
+          echo "exit 0" >> "$WATCHDOG_FILE"
+          chmod +x "$WATCHDOG_FILE"
+        fi
 
     - name: Compile Custom Sysupgrade Image
       run: |
