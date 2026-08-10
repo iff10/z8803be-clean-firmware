@@ -1,7 +1,7 @@
 name: Build Clean Z8803BE OpenWrt
 
 on:
-  workflow_dispatch: # Allows you to trigger the build manually with a click
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,40 +18,32 @@ jobs:
 
     - name: Clone OpenWrt Source
       run: |
-        # Use mainline master to bypass strict branch validation blocks
-        git clone https://github.com
-        cd openwrt
+        git clone https://github.com openwrt-source
+        cd openwrt-source
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
     - name: Inject Custom Three UK Configuration
       run: |
-        cd openwrt
-        # Inject target profile rules directly
+        cd openwrt-source
         echo "CONFIG_TARGET_mediatek=y" > .config
         echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
         echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
-        
-        # Inject standard USB drivers needed for your Unisoc RM500U modem
         echo "CONFIG_PACKAGE_kmod-usb-net=y" >> .config
         echo "CONFIG_PACKAGE_kmod-usb-net-rndis=y" >> .config
         echo "CONFIG_PACKAGE_kmod-usb-serial=y" >> .config
         echo "CONFIG_PACKAGE_kmod-usb-serial-option=y" >> .config
-        
-        # Inject clean Web GUI and core cellular dialling utilities
         echo "CONFIG_PACKAGE_luci=y" >> .config
         echo "CONFIG_PACKAGE_comgt=y" >> .config
-        
-        # Apply configurations
         make defconfig
 
     - name: Compile Custom Sysupgrade Image
       run: |
-        cd openwrt
+        cd openwrt-source
         make -j$(nproc) V=s || make -j1 V=s
 
     - name: Upload Finished Firmware Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Z8803BE-Clean-ThreeUK-Firmware
-        path: openwrt/bin/targets/mediatek/filogic/*sysupgrade.bin
+        path: openwrt-source/bin/targets/mediatek/filogic/*sysupgrade.bin
