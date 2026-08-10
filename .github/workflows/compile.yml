@@ -1,0 +1,49 @@
+name: Build Fixed Z8803BE Firmware
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install Compiling Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip zlib1g-dev file python3-setuptools
+
+    - name: Clone Z8803BE Source
+      run: |
+        git clone -b zbt8803_25.12 https://github.com openwrt-source
+        cd openwrt-source
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Inject Custom Three UK Configuration
+      run: |
+        cd openwrt-source
+        echo "CONFIG_TARGET_mediatek=y" > .config
+        echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
+        echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-net=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-net-rndis=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-serial=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-serial-option=y" >> .config
+        echo "CONFIG_PACKAGE_luci=y" >> .config
+        echo "CONFIG_PACKAGE_comgt=y" >> .config
+        make defconfig
+
+    - name: Compile Custom Sysupgrade Image
+      run: |
+        cd openwrt-source
+        make -j$(nproc) V=s || make -j1 V=s
+
+    - name: Upload Finished Firmware Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Z8803BE-Clean-ThreeUK-Firmware
+        path: openwrt-source/bin/targets/mediatek/filogic/*sysupgrade.bin
