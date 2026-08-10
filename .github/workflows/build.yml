@@ -19,10 +19,15 @@ jobs:
         sudo apt update
         sudo apt install -y build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip zlib1g-dev file python3-setuptools rsync
 
-    - name: Clone Z8803BE Source
+    - name: Clone Z8803BE Source (fixed)
       run: |
-        git clone -b zbt8803_25.12 https://github.com openwrt-source
+        # Clone the exact pttuan/openwrt tree and checkout the commit requested by the user
+        git clone https://github.com/pttuan/openwrt.git openwrt-source
         cd openwrt-source
+        # fetch the specific commit (shallow) and checkout it — fallback to a normal fetch if shallow fails
+        git fetch --depth=1 origin fce4731b5c3323ad3652643d64bf0f78e51293b0 || git fetch origin fce4731b5c3323ad3652643d64bf0f78e51293b0
+        git checkout fce4731b5c3323ad3652643d64bf0f78e51293b0
+
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
@@ -35,15 +40,31 @@ jobs:
     - name: Inject Custom Three UK Configuration
       run: |
         cd openwrt-source
+        # base device/target
         echo "CONFIG_TARGET_mediatek=y" > .config
         echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
         echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
+
+        # USB / modem / RM500U-EA related packages (best-effort; package names depend on the tree)
         echo "CONFIG_PACKAGE_kmod-usb-net=y" >> .config
         echo "CONFIG_PACKAGE_kmod-usb-net-rndis=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-net-cdc-wwan=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y" >> .config
         echo "CONFIG_PACKAGE_kmod-usb-serial=y" >> .config
         echo "CONFIG_PACKAGE_kmod-usb-serial-option=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-usb-serial-wwan=y" >> .config
+
+        # Quectel / QMI helpers and luci UI
         echo "CONFIG_PACKAGE_luci=y" >> .config
+        echo "CONFIG_PACKAGE_luci-proto-qmi=y" >> .config
+        echo "CONFIG_PACKAGE_luci-proto-3g=y" >> .config
         echo "CONFIG_PACKAGE_comgt=y" >> .config
+
+        # Misc
+        echo "CONFIG_USB_SERIAL_GENERIC=y" >> .config
+
+        # generate defconfig from fragment
         make defconfig
 
     - name: Compile Custom Sysupgrade Image
