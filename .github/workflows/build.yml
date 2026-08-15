@@ -1,4 +1,4 @@
-name: Build UK OpenWrt for ZBT-Z8803BE
+name: Build UK OpenWrt (ImmortalWrt Base)
 
 on:
   workflow_dispatch:
@@ -15,13 +15,13 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git wget unzip python3 file
 
-      - name: Download Image Builder (24.10.0)
+      - name: Download ImmortalWrt Image Builder (23.05.1)
         run: |
           mkdir -p builder
           cd builder
-          wget https://downloads.openwrt.org/releases/24.10.0/targets/mediatek/filogic/openwrt-imagebuilder-24.10.0-mediatek-filogic.Linux-x86_64.tar.xz
-          tar -xJf openwrt-imagebuilder-24.10.0-mediatek-filogic.Linux-x86_64.tar.xz
-          mv openwrt-imagebuilder-24.10.0-mediatek-filogic.Linux-x86_64 imagebuilder
+          wget https://downloads.immortalwrt.org/releases/23.05.1/targets/mediatek/filogic/immortalwrt-imagebuilder-23.05.1-mediatek-filogic.Linux-x86_64.tar.xz
+          tar -xJf immortalwrt-imagebuilder-23.05.1-mediatek-filogic.Linux-x86_64.tar.xz
+          mv immortalwrt-imagebuilder-23.05.1-mediatek-filogic.Linux-x86_64 imagebuilder
 
       - name: Create Custom Files
         run: |
@@ -189,3 +189,4 @@ jobs:
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
           path: builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
+
