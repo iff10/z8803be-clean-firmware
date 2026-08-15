@@ -1,4 +1,3 @@
-
 name: Build UK OpenWrt (ImmortalWrt Base)
 
 on:
@@ -187,19 +186,16 @@ jobs:
 
       - name: List Build Output (Debug)
         run: |
-          echo "Listing all .bin files in builder/imagebuilder/bin/"
-          find builder/imagebuilder/bin/ -name "*.bin" -type f
-          echo "Listing all .img files in builder/imagebuilder/bin/"
-          find builder/imagebuilder/bin/ -name "*.img" -type f
-          echo "Full directory tree of builder/imagebuilder/bin/"
-          ls -laR builder/imagebuilder/bin/ || echo "No bin directory found"
+          echo "Searching for firmware files under builder/"
+          find builder -name "*.bin" -type f
+          find builder -name "*.img" -type f
+          echo "Full directory tree of builder/ (first level)"
+          ls -laR builder/ || echo "No builder directory found"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
           path: |
-            builder/imagebuilder/bin/**/*.bin
-            builder/imagebuilder/bin/**/*.img
-            builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
-            builder/imagebuilder/bin/targets/mediatek/filogic/*.img
+            builder/**/*.bin
+            builder/**/*.img
