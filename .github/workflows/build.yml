@@ -167,7 +167,7 @@ jobs:
 
       - name: Build with Docker Image Builder
         run: |
-          docker run --rm -v $(pwd):/builder ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
+          docker run --rm -v $(pwd):/builder -w /builder ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
             make \
             PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
