@@ -184,21 +184,8 @@ jobs:
               modemmanager luci-proto-modemmanager luci-app-atinout-mod luci-app-mmconfig luci-app-modeminfo" \
             FILES="./files/"
 
-      - name: List Build Output (Debug)
-        run: |
-          echo "Listing all .bin files in builder/imagebuilder/bin/"
-          find builder/imagebuilder/bin/ -name "*.bin" -type f
-          echo "Listing all .img files in builder/imagebuilder/bin/"
-          find builder/imagebuilder/bin/ -name "*.img" -type f
-          echo "Full directory tree of builder/imagebuilder/bin/"
-          ls -laR builder/imagebuilder/bin/ || echo "No bin directory found"
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
-          path: |
-            builder/imagebuilder/bin/**/*.bin
-            builder/imagebuilder/bin/**/*.img
-            builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
-            builder/imagebuilder/bin/targets/mediatek/filogic/*.img
+          path: builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
