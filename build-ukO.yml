@@ -1,3 +1,6 @@
+
+
+      
 name: Build UK‑Optimised OpenWrt for ZBT‑Z8803BE
 
 on:
@@ -29,10 +32,12 @@ jobs:
         run: |
           cd openwrt/builder
 
+          # Create the custom files directory
           mkdir -p files/etc/config
           mkdir -p files/etc/uci-defaults
           mkdir -p files/usr/sbin/modules
 
+          # --- Network Config ---
           cat > files/etc/config/network << 'EOF'
           config interface 'loopback'
                   option device 'lo'
@@ -79,6 +84,7 @@ jobs:
                   option device 'usb0'
           EOF
 
+          # --- Firewall Config ---
           cat > files/etc/config/firewall << 'EOF'
           config defaults
                   option syn_flood '1'
@@ -109,6 +115,7 @@ jobs:
                   option dest 'wan'
           EOF
 
+          # --- Modem init (set NCM mode) ---
           cat > files/usr/sbin/modules/quectel_rm500u << 'EOF'
           #!/bin/sh
           sleep 5
@@ -119,6 +126,7 @@ jobs:
           EOF
           chmod +x files/usr/sbin/modules/quectel_rm500u
 
+          # --- UK band locking (first boot only) ---
           cat > files/etc/uci-defaults/99-modem-tweaks << 'EOF'
           #!/bin/sh
           sleep 10
@@ -133,6 +141,8 @@ jobs:
           EOF
           chmod +x files/etc/uci-defaults/99-modem-tweaks
 
+          # --- WiFi country set to UK (GB) - no SSID/password ---
+          mkdir -p files/etc/config
           cat > files/etc/config/wireless << 'EOF'
           config wifi-device 'radio0'
                   option type 'mac80211'
