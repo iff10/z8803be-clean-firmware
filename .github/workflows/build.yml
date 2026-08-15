@@ -168,7 +168,7 @@ jobs:
       - name: Build with Docker Image Builder
         run: |
           docker run --rm -v $(pwd):/builder ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
-            make image \
+            make \
             PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
               kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
@@ -180,4 +180,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
-          path: builder/bin/targets/mediatek/filogic/*.bin
+          path: /builder/bin/targets/mediatek/filogic/*.bin
