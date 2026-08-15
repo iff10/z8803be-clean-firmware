@@ -10,22 +10,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y build-essential git wget unzip python3 file
-          mkdir -p openwrt
-
-      - name: Download Image Builder (Snapshot)
-        run: |
-          cd openwrt
-          wget https://downloads.openwrt.org/snapshots/targets/mediatek/filogic/openwrt-imagebuilder-mediatek-filogic.Linux-x86_64.tar.xz
-          tar -xJf openwrt-imagebuilder-mediatek-filogic.Linux-x86_64.tar.xz
-          mv openwrt-imagebuilder-mediatek-filogic.Linux-x86_64 builder
-
       - name: Create Custom Files
         run: |
-          cd openwrt/builder
           mkdir -p files/etc/config files/etc/uci-defaults files/usr/sbin/modules
 
           # ----- Network Config -----
@@ -122,7 +108,7 @@ jobs:
           EOF
           chmod +x files/etc/uci-defaults/99-modem-tweaks
 
-          # ----- WiFi: Country GB, No Password (set later) -----
+          # ----- WiFi: Country GB, No Password -----
           cat > files/etc/config/wireless << 'EOF'
           config wifi-device 'radio0'
                   option type 'mac80211'
@@ -179,10 +165,10 @@ jobs:
                   option disabled '0'
           EOF
 
-      - name: Build Image
+      - name: Build with Docker Image Builder
         run: |
-          cd openwrt/builder
-          make image \
+          docker run --rm -v $(pwd):/builder ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
+            make image \
             PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
               kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
@@ -194,4 +180,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
-          path: openwrt/builder/bin/targets/mediatek/filogic/*.bin
+          path: builder/bin/targets/mediatek/filogic/*.bin
