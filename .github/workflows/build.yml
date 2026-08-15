@@ -167,17 +167,21 @@ jobs:
 
       - name: Build with Docker Image Builder
         run: |
-          docker run --rm -v $(pwd):/builder -w /builder ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
+          mkdir -p output
+          docker run --rm \
+            -v $(pwd)/files:/builder/custom \
+            -v $(pwd)/output:/builder/bin \
+            ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
             make \
             PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
               kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
               usbutils comgt luci-proto-3g \
               modemmanager luci-proto-modemmanager luci-app-atinout-mod luci-app-mmconfig luci-app-modeminfo" \
-            FILES="./files/"
+            FILES="./custom/"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
-          path: /builder/bin/targets/mediatek/filogic/*.bin
+          path: output/bin/targets/mediatek/filogic/*.bin
