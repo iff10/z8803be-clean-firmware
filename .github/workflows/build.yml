@@ -10,6 +10,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential git wget unzip python3 file
+
+      - name: Download Image Builder (24.10.0)
+        run: |
+          mkdir -p builder
+          cd builder
+          wget https://downloads.openwrt.org/releases/24.10.0/targets/mediatek/filogic/openwrt-imagebuilder-24.10.0-mediatek-filogic.Linux-x86_64.tar.xz
+          tar -xJf openwrt-imagebuilder-24.10.0-mediatek-filogic.Linux-x86_64.tar.xz
+          mv openwrt-imagebuilder-24.10.0-mediatek-filogic.Linux-x86_64 imagebuilder
+
       - name: Create Custom Files
         run: |
           mkdir -p files/etc/config files/etc/uci-defaults files/usr/sbin/modules
@@ -160,24 +173,19 @@ jobs:
                   option disabled '0'
           EOF
 
-      - name: Build with Docker Image Builder
+      - name: Build Image
         run: |
-          mkdir -p output
-          docker run --rm \
-            -v $(pwd)/files:/builder/custom \
-            -v $(pwd)/output:/builder/bin \
-            -w /builder \
-            ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
-            make \
-            PROFILE="zbtlink_zbt-z8803be" \
+          cp -r files builder/imagebuilder/
+          cd builder/imagebuilder
+          make PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
               kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
               usbutils comgt luci-proto-3g \
               modemmanager luci-proto-modemmanager luci-app-atinout-mod luci-app-mmconfig luci-app-modeminfo" \
-            FILES="./custom/"
+            FILES="./files/"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
-          path: output/bin/targets/mediatek/filogic/*.bin
+          path: builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
