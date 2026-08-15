@@ -19,9 +19,10 @@ jobs:
       - name: Download Image Builder
         run: |
           cd openwrt
-wget https://downloads.openwrt.org/releases/24.10.7/targets/mediatek/filogic/openwrt-imagebuilder-24.10.7-mediatek-filogic.Linux-x86_64.tar.xz
-tar -xJf openwrt-imagebuilder-24.10.7-mediatek-filogic.Linux-x86_64.tar.xz
-mv openwrt-imagebuilder-24.10.7-mediatek-filogic.Linux-x86_64 builder
+          wget https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64.tar.xz
+          tar -xJf openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64.tar.xz
+          mv openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64 builder
+
       - name: Create Custom Files
         run: |
           cd openwrt/builder
