@@ -173,22 +173,30 @@ jobs:
                   option disabled '0'
           EOF
 
-      - name: Build Image
+      - name: Build Image (Auto-detect Profile)
         run: |
           cp -r files builder/imagebuilder/
           cd builder/imagebuilder
-          echo "=== Available profiles containing 'zbt' ==="
-          make info | grep -i zbt || echo "No zbt profile found"
-          echo "=== Starting build with profile zbtlink_zbt-z8803be ==="
+          echo "=== Available profiles (searching for 'zbt') ==="
+          make info | grep -i zbt || echo "No 'zbt' profile found"
+          echo "=== Trying profile 'zbtlink_zbt-z8803be' ==="
           make PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
               kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
               usbutils comgt luci-proto-3g \
               modemmanager luci-proto-modemmanager luci-app-atinout-mod luci-app-mmconfig luci-app-modeminfo" \
-            FILES="./files/"
-          echo "=== Build finished. Checking for output files ==="
+            FILES="./files/" || echo "Profile zbtlink_zbt-z8803be failed"
+          echo "=== Trying profile 'zbt-z8803be' ==="
+          make PROFILE="zbt-z8803be" \
+            PACKAGES="luci luci-app-firewall \
+              kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
+              usbutils comgt luci-proto-3g \
+              modemmanager luci-proto-modemmanager luci-app-atinout-mod luci-app-mmconfig luci-app-modeminfo" \
+            FILES="./files/" || echo "Profile zbt-z8803be failed"
+          echo "=== Finished builds. Searching for output ==="
           find . -name "*.bin" -type f
           find . -name "*.img" -type f
+          ls -la ./bin/targets/mediatek/filogic/ || echo "No bin directory"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
