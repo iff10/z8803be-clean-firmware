@@ -14,7 +14,6 @@ jobs:
         run: |
           mkdir -p files/etc/config files/etc/uci-defaults files/usr/sbin/modules
 
-          # ----- Network Config -----
           cat > files/etc/config/network << 'EOF'
           config interface 'loopback'
                   option device 'lo'
@@ -54,7 +53,6 @@ jobs:
                   option device 'usb0'
           EOF
 
-          # ----- Firewall Config -----
           cat > files/etc/config/firewall << 'EOF'
           config defaults
                   option syn_flood '1'
@@ -82,7 +80,6 @@ jobs:
                   option dest 'wan'
           EOF
 
-          # ----- Modem Init Script -----
           cat > files/usr/sbin/modules/quectel_rm500u << 'EOF'
           #!/bin/sh
           sleep 5
@@ -93,7 +90,6 @@ jobs:
           EOF
           chmod +x files/usr/sbin/modules/quectel_rm500u
 
-          # ----- UK Band Locking (First Boot) -----
           cat > files/etc/uci-defaults/99-modem-tweaks << 'EOF'
           #!/bin/sh
           sleep 10
@@ -108,7 +104,6 @@ jobs:
           EOF
           chmod +x files/etc/uci-defaults/99-modem-tweaks
 
-          # ----- WiFi: Country GB, No Password -----
           cat > files/etc/config/wireless << 'EOF'
           config wifi-device 'radio0'
                   option type 'mac80211'
@@ -171,6 +166,7 @@ jobs:
           docker run --rm \
             -v $(pwd)/files:/builder/custom \
             -v $(pwd)/output:/builder/bin \
+            -w /builder \
             ghcr.io/openwrt/imagebuilder:mediatek-filogic-master \
             make \
             PROFILE="zbtlink_zbt-z8803be" \
