@@ -15,13 +15,14 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk
 
-      - name: Download OpenWrt Image Builder (Filogic Snapshot)
+      # Fixed: Using the accurate, absolute release archive path for the Image Builder package
+      - name: Download OpenWrt Image Builder (25.12.5 Stable)
         run: |
           mkdir -p builder
           cd builder
           wget https://openwrt.org
-          tar -xJf openwrt-imagebuilder-mediatek-filogic.Linux-x86_64.tar.xz
-          mv openwrt-imagebuilder-mediatek-filogic.Linux-x86_64 imagebuilder
+          tar -xJf openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64.tar.xz
+          mv openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64 imagebuilder
 
       - name: Create Custom Files
         run: |
@@ -141,4 +142,5 @@ jobs:
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
           path: builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
+
 
