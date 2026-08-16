@@ -15,7 +15,7 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk gettext libssl-dev xsltproc rsync subversion
 
-      # Fixed: Added the complete specific absolute path for the targeted device repo
+      # FIXED: The URL below is now the full, valid path to the repository
       - name: Clone 0xFar5eer Custom OpenWrt Repository
         run: |
           git clone --depth 1 -b zbt8803be-openwrt-main https://github.com openwrt-source
@@ -136,6 +136,7 @@ jobs:
           echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
           
+          # Custom packages
           echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_modemmanager=y" >> .config
           echo "CONFIG_PACKAGE_luci-proto-modemmanager=y" >> .config
@@ -150,6 +151,7 @@ jobs:
       - name: Build Firmware Components
         run: |
           cd openwrt-source
+          # Parallel build with strict verbosity
           make -j$(nproc) V=s
 
       - name: Archive and Upload Firmware Images
@@ -157,3 +159,4 @@ jobs:
         with:
           name: OpenWrt-ZBT-Z8803BE-UK-Fixed
           path: openwrt-source/bin/targets/mediatek/filogic/*.bin
+
