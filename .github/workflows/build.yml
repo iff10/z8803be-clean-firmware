@@ -1,4 +1,4 @@
-name: Build UK OpenWrt (Z8803BE Fixed)
+name: Build UK OpenWrt (0xFar5eer Source Base)
 
 on:
   workflow_dispatch:
@@ -7,25 +7,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Workflow
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk
+          sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk gettext libssl-dev xsltproc rsync subversion
 
-      # Fixed: Using exact OpenWrt 24.10.1 naming syntax structure to resolve the 404 download error
-      - name: Download OpenWrt Image Builder (24.10.1 Stable)
+      # Fixed: Cloning 0xFar5eer's source code where the Z8803BE target profile actually exists
+      - name: Clone 0xFar5eer Custom OpenWrt Repository
         run: |
-          mkdir -p builder
-          cd builder
-          wget https://openwrt.org
-          tar -xJf openwrt-imagebuilder-24.10.1-mediatek-filogic.Linux-x86_64.tar.xz
-          mv openwrt-imagebuilder-24.10.1-mediatek-filogic.Linux-x86_64 imagebuilder
+          git clone --depth 1 -b zbt8803be-openwrt-main https://github.com openwrt-source
 
-      - name: Create Custom Files
+      # Fixed: Updating and syncing the underlying MediaTek feeds required for the mt7996 radio array
+      - name: Update and Install Feeds
         run: |
+          cd openwrt-source
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Inject Custom Configurations & Scripts
+        run: |
+          cd openwrt-source
           mkdir -p files/etc/config files/etc/uci-defaults
 
           cat > files/etc/config/network << 'EOF'
@@ -122,26 +126,42 @@ jobs:
           
           uci set wireless.globals.country='GB'
           uci commit wireless
-          
           exit 0
           EOF
           chmod +x files/etc/uci-defaults/99-modem-tweaks
 
-      - name: Build Image
+      # Fixed: Generating the specific package dependency layout for the Filogic build target
+      - name: Configure Target Defconfig
         run: |
-          cp -r files builder/imagebuilder/
-          cd builder/imagebuilder
-          make PROFILE="zbtlink_zbt-z8803be" \
-            PACKAGES="luci luci-app-firewall \
-              kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
-              usbutils comgt modemmanager luci-proto-modemmanager" \
-            FILES="./files/"
+          cd openwrt-source
+          echo "CONFIG_TARGET_mediatek=y" > .config
+          echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
+          echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
+          
+          # Injected your targeted extra application layer options
+          echo "CONFIG_PACKAGE_luci=y" >> .config
+          echo "CONFIG_PACKAGE_modemmanager=y" >> .config
+          echo "CONFIG_PACKAGE_luci-proto-modemmanager=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-usb-serial-option=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-usb-net-rndis=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-usb-serial=y" >> .config
+          echo "CONFIG_PACKAGE_usbutils=y" >> .config
+          
+          make defconfig
 
-      - name: Upload Artifact
+      - name: Build Firmware Components
+        run: |
+          cd openwrt-source
+          # Compiles utilizing multi-core processor optimizations
+          make -j$(nproc) V=s
+
+      - name: Archive and Upload Firmware Images
         uses: actions/upload-artifact@v4
         with:
-          name: OpenWrt-ZBT-Z8803BE-UK
-          path: builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
+          name: OpenWrt-ZBT-Z8803BE-UK-Fixed
+          path: openwrt-source/bin/targets/mediatek/filogic/*.bin
+
 
 
 
