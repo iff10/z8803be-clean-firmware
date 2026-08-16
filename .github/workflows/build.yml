@@ -13,9 +13,8 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk signfile
+          sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk
 
-      # Fixed: Using OpenWrt/ImmortalWrt dev snapshot branch that actually supports the Z8803BE hardware target
       - name: Download OpenWrt Image Builder (Filogic Snapshot)
         run: |
           mkdir -p builder
@@ -106,7 +105,6 @@ jobs:
                   option dest 'wan'
           EOF
 
-          # Fixed: UCI defaults runs asynchronously in the background so it won't crash/freeze boot cycle
           cat > files/etc/uci-defaults/99-modem-tweaks << 'EOF'
           #!/bin/sh
           (
@@ -121,7 +119,6 @@ jobs:
               fi
           ) &
           
-          # Fixed: Safely change Wi-Fi settings via UCI API instead of forcing broken hardcoded files
           uci set wireless.globals.country='GB'
           uci commit wireless
           
@@ -133,7 +130,6 @@ jobs:
         run: |
           cp -r files builder/imagebuilder/
           cd builder/imagebuilder
-          # Note: Ensured profile identity perfectly matches the official target index
           make PROFILE="zbtlink_zbt-z8803be" \
             PACKAGES="luci luci-app-firewall \
               kmod-usb-net-cdc-ncm kmod-usb-serial-option kmod-usb-net-rndis kmod-usb-serial \
@@ -145,3 +141,4 @@ jobs:
         with:
           name: OpenWrt-ZBT-Z8803BE-UK
           path: builder/imagebuilder/bin/targets/mediatek/filogic/*.bin
+
