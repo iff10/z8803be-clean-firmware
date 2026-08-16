@@ -15,12 +15,11 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk gettext libssl-dev xsltproc rsync subversion
 
-      # Fixed: Cloning 0xFar5eer's source code where the Z8803BE target profile actually exists
+      # Fixed: Added the complete specific absolute path for the targeted device repo
       - name: Clone 0xFar5eer Custom OpenWrt Repository
         run: |
           git clone --depth 1 -b zbt8803be-openwrt-main https://github.com openwrt-source
 
-      # Fixed: Updating and syncing the underlying MediaTek feeds required for the mt7996 radio array
       - name: Update and Install Feeds
         run: |
           cd openwrt-source
@@ -130,7 +129,6 @@ jobs:
           EOF
           chmod +x files/etc/uci-defaults/99-modem-tweaks
 
-      # Fixed: Generating the specific package dependency layout for the Filogic build target
       - name: Configure Target Defconfig
         run: |
           cd openwrt-source
@@ -138,7 +136,6 @@ jobs:
           echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
           
-          # Injected your targeted extra application layer options
           echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_modemmanager=y" >> .config
           echo "CONFIG_PACKAGE_luci-proto-modemmanager=y" >> .config
@@ -153,7 +150,6 @@ jobs:
       - name: Build Firmware Components
         run: |
           cd openwrt-source
-          # Compiles utilizing multi-core processor optimizations
           make -j$(nproc) V=s
 
       - name: Archive and Upload Firmware Images
@@ -161,7 +157,3 @@ jobs:
         with:
           name: OpenWrt-ZBT-Z8803BE-UK-Fixed
           path: openwrt-source/bin/targets/mediatek/filogic/*.bin
-
-
-
-
