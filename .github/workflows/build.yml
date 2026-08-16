@@ -15,10 +15,14 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git wget unzip python3 file rsync libncurses5-dev zlib1g-dev gawk gettext libssl-dev xsltproc subversion
 
-      # Fixed: Broken down into explicit steps to prevent the runner from truncating the URL
-      - name: Clone 0xFar5eer Custom OpenWrt Repository
-        run: |
-          git clone --depth=1 --branch=zbt8803be-openwrt-main "https://github.com" openwrt-source
+      # FIXED: Using the native Action instead of shell command to prevent URL truncation errors
+      - name: Clone 0xFar5eer Source
+        uses: actions/checkout@v4
+        with:
+          repository: 0xFar5eer/openwrt25.12_ZBT_Z8803BE
+          ref: zbt8803be-openwrt-main
+          path: openwrt-source
+          fetch-depth: 1
 
       - name: Update and Install Feeds
         run: |
@@ -136,6 +140,7 @@ jobs:
           echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_zbtlink_zbt-z8803be=y" >> .config
           
+          # Custom packages
           echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_modemmanager=y" >> .config
           echo "CONFIG_PACKAGE_luci-proto-modemmanager=y" >> .config
@@ -157,3 +162,4 @@ jobs:
         with:
           name: OpenWrt-ZBT-Z8803BE-UK-Fixed
           path: openwrt-source/bin/targets/mediatek/filogic/*.bin
+
