@@ -1,0 +1,41 @@
+name: Unlocked ZBT Snapshots Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    - name: Safe Environment Setup
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup
+        sudo apt-get update
+        sudo apt-get -y install build-essential git wget zstd
+        sudo apt-get clean
+
+    - name: Download Development Image Builder
+      run: |
+        wget https://openwrt.org
+
+    - name: Unpack Image Builder File System
+      run: |
+        tar --zstd -xf openwrt-imagebuilder-mediatek-filogic.Linux-x86_64.tar.zst
+        mv openwrt-imagebuilder-mediatek-filogic.Linux-x86_64 imagebuilder
+
+    - name: Inject Wi-Fi 7 Unlocked Profile and RNDIS Drivers
+      run: |
+        cd imagebuilder
+        make image PROFILE=zbtlink_zbt-z8803be PACKAGES="luci kmod-usb-net-rndis kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm kmod-usb-wdm kmod-usb-serial kmod-usb-serial-option kmod-usb-serial-wwan -kmod-vrf -kmod-bonding -luci-app-vrf"
+
+    - name: Upload Clean Recovery Firmware
+      uses: actions/upload-artifact@v4
+      with:
+        name: Clean_ZBT_Z8803BE_Snapshot
+        path: imagebuilder/bin/targets/mediatek/filogic/*sysupgrade.bin
